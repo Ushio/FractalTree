@@ -1,11 +1,3 @@
-//
-//  ViewController.m
-//  Fractal
-//
-//  Created by 吉村 篤 on 2013/03/17.
-//  Copyright (c) 2013年 吉村 篤. All rights reserved.
-//
-
 #import "ViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import <GLKit/GLKMath.h>
@@ -149,7 +141,7 @@ static GLKVector2 rotateVector2(GLKVector2 vector, float degree)
     canvas.image = image;
 }
 
-- (IBAction)generate:(id)sender
+- (IBAction)grow:(id)sender
 {
     const int size = 320 * [UIScreen mainScreen].scale;
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
