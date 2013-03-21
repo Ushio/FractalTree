@@ -30,29 +30,30 @@
     [super didReceiveMemoryWarning];
 }
 
+static GLKVector2 rotateVector2(GLKVector2 vector, float degree)
+{
+    GLKMatrix3 rotate = GLKMatrix3MakeRotation(GLKMathDegreesToRadians(degree), 0, 0, 1);
+    GLKVector3 rotated3 = GLKMatrix3MultiplyVector3(rotate, GLKVector3Make(vector.x, vector.y, 0.0f));
+    GLKVector2 rotated = {rotated3.x, rotated3.y};
+    return rotated;
+}
 //basic
 - (void)drawTree:(CGContextRef)context iteration:(int)iteration beg:(GLKVector2)beg end:(GLKVector2)end
 {
-    CGPoint line[] = {{beg.x, beg.y}, {end.x, end.y}};
-    CGContextStrokeLineSegments(context, line, 2);
-    
     if(iteration <= 0)
     {
-//        //NOP
-//        float radius = 2.0;
-//        CGContextFillEllipseInRect(context, CGRectMake(end.x - radius, end.y - radius, radius * 2.0f, radius * 2.0f));
+        //NOP
     }
     else
     {
+        CGPoint line[] = {{beg.x, beg.y}, {end.x, end.y}};
+        CGContextStrokeLineSegments(context, line, 2);
+        
         GLKVector2 vector = GLKVector2Subtract(end, beg);
         GLKVector2 nvector = GLKVector2Normalize(vector);
         
-        GLKMatrix3 rotateL = GLKMatrix3MakeRotation(GLKMathDegreesToRadians( 30.0f), 0, 0, 1);
-        GLKMatrix3 rotateR = GLKMatrix3MakeRotation(GLKMathDegreesToRadians(-30.0f), 0, 0, 1);
-        GLKVector3 rotatedL3 = GLKMatrix3MultiplyVector3(rotateL, GLKVector3Make(nvector.x, nvector.y, 0.0f));
-        GLKVector3 rotatedR3 = GLKMatrix3MultiplyVector3(rotateR, GLKVector3Make(nvector.x, nvector.y, 0.0f));
-        GLKVector2 rotatedL = {rotatedL3.x, rotatedL3.y};
-        GLKVector2 rotatedR = {rotatedR3.x, rotatedR3.y};
+        GLKVector2 rotatedL = rotateVector2(nvector,  30.0f);
+        GLKVector2 rotatedR = rotateVector2(nvector, -30.0f);
         
         float centerLength = GLKVector2Distance(end, beg) * 0.9;
         float sideLength = GLKVector2Distance(end, beg) * 0.5;
@@ -67,41 +68,28 @@
 }
 
 - (void)drawTree:(CGContextRef)context iteration:(int)iteration beg:(GLKVector2)beg end:(GLKVector2)end move:(float)move
-{
-    CGPoint line[] = {{beg.x, beg.y}, {end.x, end.y}};
-    CGContextStrokeLineSegments(context, line, 2);
-    
+{    
     if(iteration <= 0)
     {
-        //        //NOP
-        //        float radius = 2.0;
-        //        CGContextFillEllipseInRect(context, CGRectMake(end.x - radius, end.y - radius, radius * 2.0f, radius * 2.0f));
+        //NOP
     }
     else
     {
+        CGPoint line[] = {{beg.x, beg.y}, {end.x, end.y}};
+        CGContextStrokeLineSegments(context, line, 2);
+        
         GLKVector2 vector = GLKVector2Subtract(end, beg);
         GLKVector2 nvector = GLKVector2Normalize(vector);
         
-        GLKMatrix3 rotateL = GLKMatrix3MakeRotation(GLKMathDegreesToRadians( 30.0f), 0, 0, 1);
-        GLKMatrix3 rotateR = GLKMatrix3MakeRotation(GLKMathDegreesToRadians(-30.0f), 0, 0, 1);
-        GLKVector3 rotatedL3 = GLKMatrix3MultiplyVector3(rotateL, GLKVector3Make(nvector.x, nvector.y, 0.0f));
-        GLKVector3 rotatedR3 = GLKMatrix3MultiplyVector3(rotateR, GLKVector3Make(nvector.x, nvector.y, 0.0f));
-        GLKVector2 rotatedL = {rotatedL3.x, rotatedL3.y};
-        GLKVector2 rotatedR = {rotatedR3.x, rotatedR3.y};
-        
-        GLKMatrix3 moveMatrix = GLKMatrix3MakeRotation(GLKMathDegreesToRadians(move), 0, 0, 1);
-        GLKVector3 movedL3 = GLKMatrix3MultiplyVector3(moveMatrix, GLKVector3Make(rotatedL.x, rotatedL.y, 0.0f));
-        GLKVector3 movedC3 = GLKMatrix3MultiplyVector3(moveMatrix, GLKVector3Make(nvector.x, nvector.y, 0.0f));
-        GLKVector3 movedR3 = GLKMatrix3MultiplyVector3(moveMatrix, GLKVector3Make(rotatedR.x, rotatedR.y, 0.0f));
-        GLKVector2 movedL = {movedL3.x, movedL3.y};
-        GLKVector2 movedC = {movedC3.x, movedC3.y};
-        GLKVector2 movedR = {movedR3.x, movedR3.y};
+        GLKVector2 rotatedL = rotateVector2(nvector,  30.0f + move);
+        GLKVector2 rotatedC = rotateVector2(nvector,  0.0f + move);
+        GLKVector2 rotatedR = rotateVector2(nvector, -30.0f + move);
         
         float centerLength = GLKVector2Distance(end, beg) * 0.9;
         float sideLength = GLKVector2Distance(end, beg) * 0.5;
-        GLKVector2 leftEnd   = GLKVector2Add(end, GLKVector2MultiplyScalar(movedL, sideLength));
-        GLKVector2 centerEnd = GLKVector2Add(end, GLKVector2MultiplyScalar(movedC, centerLength));
-        GLKVector2 rightEnd  = GLKVector2Add(end, GLKVector2MultiplyScalar(movedR, sideLength));
+        GLKVector2 leftEnd   = GLKVector2Add(end, GLKVector2MultiplyScalar(rotatedL, sideLength));
+        GLKVector2 centerEnd = GLKVector2Add(end, GLKVector2MultiplyScalar(rotatedC, centerLength));
+        GLKVector2 rightEnd  = GLKVector2Add(end, GLKVector2MultiplyScalar(rotatedR, sideLength));
         
         [self drawTree:context iteration:iteration - 1 beg:end end:leftEnd move:move * 0.5];
         [self drawTree:context iteration:iteration - 1 beg:end end:centerEnd move:move * 0.8];
